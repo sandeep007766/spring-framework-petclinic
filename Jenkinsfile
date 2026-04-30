@@ -16,18 +16,26 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh '''
+                    echo "Building project..."
+                    mvn clean package -DskipTests
+                '''
             }
         }
 
         stage('Deploy') {
             steps {
                 sh '''
-                    echo "Stopping old application if running..."
-                    pkill -f 'java -jar' || true
+                    echo "Stopping old application..."
+                    pkill -f java || true
 
-                    echo "Starting new application on port 8081..."
-                    nohup java -jar target/*.jar --server.port=8081 > app.log 2>&1 &
+                    echo "Locating JAR file..."
+                    JAR_FILE=$(find . -path "*/target/*.jar" | head -n 1)
+
+                    echo "Found JAR: $JAR_FILE"
+
+                    echo "Starting application on port 8081..."
+                    nohup java -jar $JAR_FILE --server.port=8081 > app.log 2>&1 &
                 '''
             }
         }
