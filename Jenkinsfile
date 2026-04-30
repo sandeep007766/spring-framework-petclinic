@@ -23,10 +23,23 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
+                    echo "Stopping old application if running..."
                     pkill -f 'java -jar' || true
-                    nohup java -jar target/*.jar > app.log 2>&1 &
+
+                    echo "Starting new application on port 8081..."
+                    nohup java -jar target/*.jar --server.port=8081 > app.log 2>&1 &
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executed successfully 🎉'
+        }
+
+        failure {
+            echo 'Pipeline failed ❌ Check logs'
         }
     }
 }
