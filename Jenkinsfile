@@ -29,12 +29,12 @@ pipeline {
                     echo "Stopping old application..."
                     pkill -f java || true
 
-                    echo "Locating JAR file..."
-                    JAR_FILE=$(find . -path "*/target/*.jar" | head -n 1)
+                    echo "Deploying WAR file..."
 
-                    echo "Found JAR: $JAR_FILE"
+                    JAR_FILE=$(find target -name "petclinic.war" | head -n 1)
 
-                    echo "Starting application on port 8081..."
+                    echo "Found artifact: $JAR_FILE"
+
                     nohup java -jar $JAR_FILE --server.port=8081 > app.log 2>&1 &
                 '''
             }
