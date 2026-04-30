@@ -16,26 +16,15 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh '''
-                    echo "Building project..."
-                    mvn clean package -DskipTests
-                '''
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Deploy') {
+        stage('Run Application') {
             steps {
                 sh '''
-                    echo "Stopping old application..."
-                    pkill -f java || true
-
-                    echo "Deploying WAR file..."
-
-                    JAR_FILE=$(find target -name "petclinic.war" | head -n 1)
-
-                    echo "Found artifact: $JAR_FILE"
-
-                    nohup java -jar $JAR_FILE --server.port=8081 > app.log 2>&1 &
+                    pkill -f "spring" || true
+                    nohup mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081 > app.log 2>&1 &
                 '''
             }
         }
@@ -43,11 +32,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline executed successfully 🎉'
+            echo "App started successfully 🚀"
         }
-
         failure {
-            echo 'Pipeline failed ❌ Check logs'
+            echo "Build failed ❌"
         }
     }
 }
