@@ -21,24 +21,24 @@ pipeline {
             }
         }
 
-        stage('Deploy & Run') {
+        stage('Deploy') {
             steps {
                 sh '''
-                    echo "Stopping old processes..."
+                    echo "Stopping old app..."
                     pkill -f petclinic || true
-                    pkill -f spring || true
                     pkill -f java || true
 
-                    echo "Starting Spring Boot application using Maven..."
+                    echo "Starting application properly..."
 
-                    nohup mvn spring-boot:run \
-                    -Dspring-boot.run.arguments=--server.port=8081 \
+                    nohup java -jar target/petclinic.war \
+                    --server.port=8081 \
+                    --server.address=0.0.0.0 \
                     > app.log 2>&1 &
 
-                    sleep 15
+                    sleep 10
 
-                    echo "Checking if app is running..."
-                    ps -ef | grep spring
+                    echo "Checking app..."
+                    ps -ef | grep java
                     netstat -tlnp | grep 8081 || true
                 '''
             }
@@ -47,7 +47,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ SUCCESS - App should be running on http://<EC2-IP>:8081"
+            echo "✅ SUCCESS - App should run on http://<EC2-IP>:8081"
         }
 
         failure {
