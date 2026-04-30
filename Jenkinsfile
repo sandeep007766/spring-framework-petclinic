@@ -10,7 +10,8 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/sandeep007766/spring-framework-petclinic.git'
+                git branch: 'main',
+                url: 'https://github.com/sandeep007766/spring-framework-petclinic.git'
             }
         }
 
@@ -20,11 +21,25 @@ pipeline {
             }
         }
 
-        stage('Run Application') {
+        stage('Deploy & Run') {
             steps {
                 sh '''
-                    pkill -f "spring" || true
-                    nohup mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081 > app.log 2>&1 &
+                    echo "Stopping old application..."
+                    pkill -f petclinic || true
+                    pkill -f java || true
+
+                    echo "Starting application..."
+
+                    nohup java -jar target/petclinic.war \
+                    --server.port=8081 \
+                    --server.address=0.0.0.0 \
+                    > app.log 2>&1 &
+
+                    sleep 10
+
+                    echo "Verifying process..."
+                    ps -ef | grep java
+                    netstat -tlnp | grep 8081 || true
                 '''
             }
         }
@@ -32,10 +47,11 @@ pipeline {
 
     post {
         success {
-            echo "App started successfully 🚀"
+            echo "✅ Pipeline SUCCESS - Application should be running on port 8081"
         }
+
         failure {
-            echo "Build failed ❌"
+            echo "❌ Pipeline FAILED - check logs"
         }
     }
 }
