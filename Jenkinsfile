@@ -21,25 +21,14 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Tomcat') {
             steps {
                 sh '''
-                    echo "Stopping old app..."
-                    pkill -f petclinic || true
-                    pkill -f java || true
+                    echo "Deploying WAR to Tomcat..."
 
-                    echo "Starting application properly..."
+                    sudo cp target/petclinic.war /var/lib/tomcat9/webapps/
 
-                    nohup java -jar target/petclinic.war \
-                    --server.port=8081 \
-                    --server.address=0.0.0.0 \
-                    > app.log 2>&1 &
-
-                    sleep 10
-
-                    echo "Checking app..."
-                    ps -ef | grep java
-                    netstat -tlnp | grep 8081 || true
+                    echo "Deployment completed"
                 '''
             }
         }
@@ -47,11 +36,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ SUCCESS - App should run on http://<EC2-IP>:8081"
+            echo "✅ SUCCESS - Open http://<EC2-IP>:8080/petclinic"
         }
-
         failure {
-            echo "❌ FAILED - check app.log"
+            echo "❌ FAILED - check logs"
         }
     }
 }
